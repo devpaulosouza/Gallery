@@ -1,0 +1,54 @@
+#!/bin/bash
+
+if [ "$2" == "" ]; then
+	echo "Usage: "
+	echo "$0 inputfolder outputfolder [thumbwidth] [fullwidth]"
+	exit 1
+fi
+
+python s.py
+
+mkdir -p template
+
+inputfolder="$1"
+outputfolder="$2"
+
+thumbsize=120
+fullsize=1360
+
+if [ "$3" != "" ]; then 
+	thumbsize=$3
+fi
+
+if [ "$4" != "" ]; then
+	fullsize=$4
+fi
+
+echo "input  = $inputfolder"
+echo "output = $outputfolder"
+
+mkdir -p $outputfolder/original
+mkdir -p $outputfolder/thumbs
+mkdir -p $outputfolder/full
+
+echo Copying files from $inputfolder of $outputfolder/original
+cp $inputfolder/* $outputfolder/original
+
+echo Entering folder $outputfolder/original
+cd $outputfolder/original
+
+for i in *; do
+	echo "Compacting $i..."
+	#guetzli --quality 84 $i $i
+done
+
+
+for i in *; do
+	echo Resizing file $i...
+	convert -define jpeg:size=200x200 $i -thumbnail ${thumbsize}x${thumbsize}^ -gravity center -extent ${thumbsize}x${thumbsize} ../thumbs/$i
+	convert $i -resize ${fullsize}x${fullsize} ../full/$i
+done
+
+cd ../../
+
+gallery.py
